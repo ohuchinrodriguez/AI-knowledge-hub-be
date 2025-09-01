@@ -1,0 +1,286 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AI Knowledge Hub API - Serverless Backend with TypeScript
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        NODE_ENV: !Ref Environment
+        LOG_LEVEL: !Ref LogLevel
+        SECRETS_MANAGER_SECRET_NAME: !Ref SecretsManagerSecretName
+
+Parameters:
+  Environment:
+    Type: String
+    Default: development
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Environment name
+
+  LogLevel:
+    Type: String
+    Default: info
+    AllowedValues:
+      - debug
+      - info
+      - warn
+      - error
+    Description: Log level for the application
+
+  SecretsManagerSecretName:
+    Type: String
+    Default: ai-knowledge-hub/config
+    Description: Name of the secret in AWS Secrets Manager
+
+Resources:
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # Lambda Functions
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/createUser.handler"
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /users
+            Method: post
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getUsers.handler"
+      Events:
+        GetUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /users
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getUser.handler"
+      Events:
+        GetUser:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /users/{id}
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  # Lead Functions
+  CreateLeadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/createLead.handler"
+      Events:
+        CreateLead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /leads
+            Method: post
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetLeadsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getLeads.handler"
+      Events:
+        GetLeads:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /leads
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetLeadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getLead.handler"
+      Events:
+        GetLead:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /leads/{id}
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetProjectTypesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getProjectTypes.handler"
+      Events:
+        GetProjectTypes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /project-types
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetProjectSchemesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getProjectSchemes.handler"
+      Events:
+        GetProjectSchemes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /project-schemes
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  UpdateLeadStatusFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/updateLeadStatus.handler"
+      Events:
+        UpdateLeadStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /leads/{id}/status
+            Method: put
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+  GetLeadStatusesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command:
+          - "dist/handlers/getLeadStatuses.handler"
+      Events:
+        GetLeadStatuses:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /lead-statuses
+            Method: get
+      Policies:
+        - SecretsManagerReadWrite
+        - CloudWatchLogsFullAccess
+    Metadata:
+      DockerTag: nodejs20.x-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+
+Outputs:
+  ApiGatewayUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiGatewayUrl"
+
+  CreateUserFunctionArn:
+    Description: "Create User Lambda Function ARN"
+    Value: !GetAtt CreateUserFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-CreateUserFunctionArn"
